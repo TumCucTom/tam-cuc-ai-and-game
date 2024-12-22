@@ -1,2 +1,3 @@
-# tam-cuc-ai-and-game
-A python script for running the Vietnamese card game of tam cúc against 3 AIs.
+# Virtual game with AI for Tum cúc
+
+If you've never heard of or played this game, you can familiarise yourself [here](https://en.wikipedia.org/wiki/Tam_c%C3%BAc) or read a brief overview below.
