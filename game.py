@@ -1,6 +1,5 @@
+import threading
 import random
-import sys
-import pygame
 from ai import TamCucAI  # Import AI class
 from display import TamCucDisplay
 
@@ -16,6 +15,13 @@ class TamCucGame:
         self.discard_pile = []
         self.selected = False  # Boolean to trigger play
         self.deal_cards()
+        self.current_start_player = 'player1'  # Player 1 starts by default
+
+    def rotate_start_player(self):
+        # Rotate the starting player each time all hands are empty
+        players = ['player1', 'player2', 'player3', 'player4']
+        start_index = players.index(self.current_start_player)
+        self.current_start_player = players[(start_index + 1) % len(players)]
 
     def create_deck(self):
         deck = [(suit, rank) for suit in CARD_SUITS for rank in CARD_RANKS for _ in range(2)]
@@ -54,35 +60,53 @@ class TamCucGame:
         return any(len(hand) == 0 for hand in self.players_hands.values())
 
 
-def play_game():
-    game = TamCucGame()
-    pygame_display = TamCucDisplay(game)
-    pygame_display.pygame_loop()
-
-    ais = [TamCucAI(game, i) for i in range(2, 5)]  # AI players are player2, player3, and player4
-
-    # Main game loop
+def game_logic(game, ais):
+    """Runs the game logic in a separate thread."""
     while not game.is_game_over():
         for i in range(1, 5):
             player = f'player{i}'
             print(f"\n{player}'s hand:", game.print_hand(player))
 
-            if player == 'player1':  # Player 1's turn (human)
-                print("Waiting for player to select cards...")
-                while not game.selected:  # Wait for external trigger
-                    pass  # Can be replaced with event polling or additional logic
-                game.play_cards(player)
-                game.selected = False  # Reset the flag after playing
-            else:  # AI's turn
-                ai = ais[i-2]
-                ai_cards = ai.make_move()
-                print(f"{player} (AI) played: {[f'{card[1]} of {card[0]}' for card in ai_cards]}")
-                for card in ai_cards:
+            if player == game.current_start_player:  # Check if this player starts the round
+                print(f"{player} is starting the round.")
+                if player == 'player1':  # Player 1's turn (human)
+                    print("Waiting for player to select cards...")
+                    while not game.selected:  # Wait for the player to confirm their selection
+                        pass
                     game.play_cards(player)
+                    game.selected = False  # Reset the flag after playing
+                else:  # AI's turn
+                    ai = ais[i - 2]
+                    ai_cards = ai.make_move()
+                    print(f"{player} (AI) played: {[f'{card[1]} of {card[0]}' for card in ai_cards]}")
+                    for card in ai_cards:
+                        game.play_cards(player)
 
             if game.is_game_over():
                 print(f"Game Over! {player} wins!")
-                break
+                return
+
+        # Check if all players' hands are empty, and if so, rotate the starting player
+        if all(len(hand) == 0 for hand in game.players_hands.values()):
+            print(f"All hands are empty. Rotating start player...")
+            game.rotate_start_player()
+
+
+
+def play_game():
+    game = TamCucGame()
+    pygame_display = TamCucDisplay(game)
+
+    # AI players are player2, player3, and player4
+    ais = [TamCucAI(game, i) for i in range(2, 5)]
+
+    # Start the game logic in a worker thread
+    logic_thread = threading.Thread(target=game_logic, args=(game, ais))
+    logic_thread.daemon = True  # Ensure the thread exits when the main program ends
+    logic_thread.start()
+
+    # Run the display loop on the main thread
+    pygame_display.pygame_loop()
 
 
 if __name__ == "__main__":
