@@ -108,6 +108,24 @@ def play_game():
     # Run the display loop on the main thread
     pygame_display.pygame_loop()
 
+    def create_deck(self):
+        deck = [(suit, rank) for suit in CARD_SUITS for rank in CARD_RANKS for _ in range(2)]
+        deck.extend([(suit, 'Soldier') for suit in CARD_SUITS for _ in range(2)])
+        random.shuffle(deck)
+        return deck
+
+    def deal_cards(self):
+        if len(self.deck) < 32:
+            print(f"Deck size is {len(self.deck)}. Recreating deck...")
+            self.deck = self.create_deck()  # Recreate the deck if it's empty
+        random.shuffle(self.deck)
+
+        for player in self.players_hands:
+            if len(self.deck) >= 8:
+                self.players_hands[player] = [self.deck.pop() for _ in range(8)]
+            else:
+                print(f"Not enough cards left in deck! Cards remaining: {len(self.deck)}")
+                break
 
 if __name__ == "__main__":
     play_game()

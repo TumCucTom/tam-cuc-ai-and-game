@@ -1,12 +1,18 @@
 import pygame
+import sys
 
 class TamCucDisplay:
 
     def __init__(self, game, width=800, height=800):
         pygame.init()
+        self.game = game
+        # Initialize Pygame
+        pygame.init()
 
+        # Communicating with the game logic
         self.game = game
 
+        # Screen dimensions
         self.width = width
         self.height = height
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -29,7 +35,7 @@ class TamCucDisplay:
         self.HORIZONTAL_RECT_HEIGHT = self.HORIZONTAL_RECT_WIDTH * 4
         self.VERTICAL_RECT_HEIGHT = height // 16
         self.VERTICAL_RECT_WIDTH = self.VERTICAL_RECT_HEIGHT * 4
-        self.GAP = 10
+        self.GAP = 10  # Gap between rectangles
 
         # Radius for rounded rectangles
         self.RADIUS = 10
@@ -81,7 +87,6 @@ class TamCucDisplay:
                 self.photo_states.append(False)
             except FileNotFoundError:
                 print(f"Error: Image file {img_name} not found.")
-
 
     def load_bg(self):
         try:
@@ -176,7 +181,6 @@ class TamCucDisplay:
 
         # Draw the text on the screen
         self.screen.blit(text_surface, text_rect)
-
     def pygame_loop(self):
         clock = pygame.time.Clock()
 
