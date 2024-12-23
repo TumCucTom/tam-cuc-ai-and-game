@@ -28,7 +28,7 @@ class TamCucDisplay:
         self.BUTTON_WIDTH = 200
         self.BUTTON_HEIGHT = 50
         self.BUTTON_X = (self.width - self.BUTTON_WIDTH) // 2
-        self.BUTTON_Y = self.height - self.BUTTON_HEIGHT - 20
+        self.BUTTON_Y = (self.height - self.BUTTON_HEIGHT) // 2
 
         # Rectangle dimensions and gap
         self.HORIZONTAL_RECT_WIDTH = width // 16
@@ -149,15 +149,15 @@ class TamCucDisplay:
 
     def draw_button(self):
         # Center the button horizontally
-        button_x = (self.width - 200) // 2  # 120 is the button's width
-        button_y = (self.height - 50) // 2
+        button_x = self.BUTTON_X
+        button_y = self.BUTTON_Y
 
         # Dark blue color for the button
         dark_blue = (120, 120, 120)
 
         # Draw the button
-        button_width = 200
-        button_height = 80
+        button_width = self.BUTTON_WIDTH
+        button_height = self.BUTTON_HEIGHT
         button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
         pygame.draw.rect(self.screen, dark_blue, button_rect, border_radius=self.RADIUS)
 
@@ -181,6 +181,7 @@ class TamCucDisplay:
 
         # Draw the text on the screen
         self.screen.blit(text_surface, text_rect)
+
     def pygame_loop(self):
         clock = pygame.time.Clock()
 
@@ -188,11 +189,14 @@ class TamCucDisplay:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
+                    sys.exit()  # Proper exit
+
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_x, mouse_y = event.pos
                     total_horizontal_width = (8 * self.HORIZONTAL_RECT_WIDTH) + (7 * self.GAP)
                     horizontal_start_x = (self.width - total_horizontal_width) // 2
 
+                    # Handle card selection
                     for i in range(8):
                         x = horizontal_start_x + i * (self.HORIZONTAL_RECT_WIDTH + self.GAP)
                         y = self.photo_positions[i]
@@ -201,16 +205,18 @@ class TamCucDisplay:
                         if photo_rect.collidepoint(mouse_x, mouse_y):
                             self.toggle_photo(i)
 
+                    # Check if button is clicked and number of selected cards
                     button_rect = pygame.Rect(self.BUTTON_X, self.BUTTON_Y, self.BUTTON_WIDTH, self.BUTTON_HEIGHT)
                     if button_rect.collidepoint(mouse_x, mouse_y):
-                        print("Play Cards button clicked.")
-                        self.game.selected = True
+                        if len(self.photo_names) == self.MAX_SELECTED_PHOTOS:
+                            print("Play Cards button clicked.")
+                            self.game.selected = True
+                        else:
+                            print(f"Please select {self.MAX_SELECTED_PHOTOS} cards before proceeding.")
 
-
+            # Draw everything
             self.screen.blit(self.background, (0, 0))
             self.draw_board()
-            # Inside the game loop
             self.draw_center_text()
-
             pygame.display.flip()
             clock.tick(60)

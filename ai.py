@@ -9,14 +9,18 @@ class TamCucAI:
         return score
 
     def make_move(self):
-        best_card = None
-        best_score = -float('inf')
+        # AI will choose cards up to the maximum number of cards allowed based on game state
+        max_cards_to_select = 3
+        available_cards = self.game.players_hands[self.player]
+        selected_cards = []
 
-        for card in self.game.players_hands[self.player]:
+        for card in available_cards:
             score = self.evaluate_hand([card])
-            if score > best_score:
-                best_score = score
-                best_card = card
+            if len(selected_cards) < max_cards_to_select:
+                selected_cards.append(card)
+            else:
+                break  # Stop once the AI has selected its max number of cards
 
-        self.game.play_card(best_card, self.player)
-        return best_card
+        # Update the selected cards in the game state
+        self.game.players_selected_cards[self.player] = selected_cards
+        return selected_cards
